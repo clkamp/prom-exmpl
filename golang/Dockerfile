@@ -2,8 +2,12 @@ FROM docker.io/golang:alpine as build
 
 WORKDIR /opt/app-root
 ENV GOPATH=/opt/app-root
-COPY ./ src
+COPY go.mod go.sum src/
 WORKDIR /opt/app-root/src
+RUN go mod download && go mod verify
+
+
+COPY . .
 RUN go build -o prom_exmpl
 
 FROM scratch
