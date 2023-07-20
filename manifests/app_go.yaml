@@ -1,0 +1,53 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prom-exmpl-golang
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prom-exmpl-golang
+  template:
+    metadata:
+      labels:
+        app: prom-exmpl-golang
+    spec:
+      containers:
+      - name: prom-exmpl-golang
+        image: ghcr.io/clkamp/prom_exmpl_golang
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 2112
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prom-exmpl-golang
+  labels:
+    app: prom-exmpl-golang
+spec:
+  ports:
+  - name: web
+    port: 2112
+  selector:
+    app: prom-exmpl-golang
+  type: NodePort
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: prom-exmpl-golang
+spec:
+  selector:
+    matchLabels:
+      app: prom-exmpl-golang
+  endpoints:
+  - port: web
+  attachMetadata:
+    node: true
