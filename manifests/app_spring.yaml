@@ -1,0 +1,54 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prom-exmpl-spring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prom-exmpl-spring
+  template:
+    metadata:
+      labels:
+        app: prom-exmpl-spring
+    spec:
+      containers:
+      - name: prom-exmpl-spring
+        image: ghcr.io/clkamp/prom_exmpl_spring
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
+      imagePullSecrets:
+        - name: regcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prom-exmpl-spring
+  labels:
+    app: prom-exmpl-spring
+spec:
+  ports:
+  - name: web
+    port: 8080
+  selector:
+    app: prom-exmpl-spring
+  type: NodePort
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: prom-exmpl-spring
+spec:
+  selector:
+    matchLabels:
+      app: prom-exmpl-spring
+  endpoints:
+  - port: web
+    path: /actuator/prometheus
+  attachMetadata:
+    node: true
